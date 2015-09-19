@@ -35,6 +35,7 @@
 #ifdef __ANDROID_LOG__
 #include <android/log.h>
 
+
 #define LOG_TAG "PN_test"
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -63,7 +64,7 @@
 #define PN_test "704-4511-1011-1000-00"
 
 
-#define addrhardware "/sdcard/hardware.ini"
+#define addrhardware "/sdcard/hardware.ini" 
 #define addrmac "/sdcard/mac.ini"
 
 #define HARDWARE 	"/hardware.ini"
@@ -166,7 +167,8 @@ enum FunctionOption
     functionOptionLC = 2,				//LC
     functionOptionIPCamera = 4,			//IP Camera
     functionOptionAC = 8,				//AC
-    functionOptionThirdPartyProtocol = 16	//
+    functionOptionThirdPartyProtocol = 16,	//
+    functionOptionReserved = 32 //
 };
 
 
@@ -176,7 +178,8 @@ enum Language
     languageEnglish,		// English
     languageHybrew,		// Hybrew
     languageReserved,		// ReserVed
-    languageThai			// Thai
+    languageThai,       // Thai
+    languageNewLanguage
 };
 
 
@@ -185,13 +188,19 @@ enum Language
 /**
  *  PN 转换
  *  
- *  @param pn        <#pn description#>
- *  @param PnAnalyze 转化后的结构体
+ *  @param pn        PN字符串
+ *  @param PnAnalyze PN转化参数
  *
  *  @return     
  */
 static int printfPN(char pn[],PNAnalyze *PnAnalyze)
 {   
+    if (PnAnalyze == NULL) {
+        
+        PRINTF_E("[%s-%d] printfPN fail",__func__,__LINE__);
+        return fail;
+    }
+    
     PRINTF_N("PN = %s \n",pn);
 	memcpy(PnAnalyze->type,pn+4,2);	
 	memcpy(PnAnalyze->material,pn+6,1);	
@@ -211,6 +220,7 @@ static int printfPN(char pn[],PNAnalyze *PnAnalyze)
 	PRINTF_N("PnAnalyze->Product = %s\n",PnAnalyze->Product);
 	PRINTF_N("PnAnalyze->functionOption = %s\n",PnAnalyze->functionOption);
 	PRINTF_N("PnAnalyze->language = %s\n",PnAnalyze->language);
+ 
     return success;
 }
 /**
@@ -219,7 +229,7 @@ static int printfPN(char pn[],PNAnalyze *PnAnalyze)
  *  @param EnvParameter 解析后的参数
  *  @param PnAnalyze    pn转化结构体
  *
- *  @return 成功or失败
+ *  @return true or false
  */
 static int AnalyticalSize(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 {
@@ -238,7 +248,14 @@ static int AnalyticalSize(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 	}
 	return success;
 }
-
+/**
+ *  解析 以太网 DI DO RS485
+ *
+ *  @param EnvParameter env 
+ *  @param PnAnalyze    
+ *
+ *  @return true or false
+ */
 static int AnalyticalEthDiDoRS485(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 {
 	if(strcmp(PnAnalyze->EthDiDoRS485,"1") == 0)
@@ -261,7 +278,14 @@ static int AnalyticalEthDiDoRS485(ENVParameter *EnvParameter ,PNAnalyze *PnAnaly
 	return success;
 }
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param EnvParameter <#EnvParameter description#>
+ *  @param PnAnalyze    <#PnAnalyze description#>
+ *
+ *  @return <#return value description#>
+ */
 static int AnalyticalLanguage(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 {
 	if(strcmp(PnAnalyze->language,"00") == 0)
@@ -292,7 +316,14 @@ static int AnalyticalLanguage(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 	return success;
 }
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param EnvParameter <#EnvParameter description#>
+ *  @param PnAnalyze    <#PnAnalyze description#>
+ *
+ *  @return <#return value description#>
+ */
 static int AnalyticalProduct(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 {
 	if(strcmp(PnAnalyze->Product,"1") == 0)
@@ -318,7 +349,14 @@ static int AnalyticalProduct(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 	}
 	return success;
 }
-
+/**
+ *  <#Description#>
+ *
+ *  @param EnvParameter <#EnvParameter description#>
+ *  @param PnAnalyze    <#PnAnalyze description#>
+ *
+ *  @return <#return value description#>
+ */
 static int AnalyticalConfigure(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze )
 {
 	if(strcmp(PnAnalyze->functionOption,"000") == 0)
@@ -353,12 +391,18 @@ static int AnalyticalConfigure(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze 
 	return success;
 }
 
+/**
+ *  <#Description#>
+ *
+ *  @param EnvParameter <#EnvParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 int AnalyticalPn(ENVParameter * EnvParameter)
 {
-//int AnalyticalPN(ENVParameter *EnvParameter ,PNAnalyze *PnAnalyze)
-//{
 	if(EnvParameter == NULL)
 	{
+        PRINTF_E("[%s-%d] AnalyticalPn fail ",__func__,__LINE__);
 		return fail;
 	}
 	
@@ -397,7 +441,16 @@ int AnalyticalPn(ENVParameter * EnvParameter)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param hardwareAddr <#hardwareAddr description#>
+ *  @param fp           <#fp description#>
+ *  @param envParameter <#envParameter description#>
+ *  @param fileContent  <#fileContent description#>
+ *
+ *  @return <#return value description#>
+ */
 static int getVersion(char *hardwareAddr,int *fp,ENVParameter * envParameter,char *fileContent)
 {
 	char * str,*head,*tail;
@@ -405,6 +458,7 @@ static int getVersion(char *hardwareAddr,int *fp,ENVParameter * envParameter,cha
 
 	if(hardwareAddr==NULL || fp==NULL || envParameter==NULL || fileContent==NULL)
 	{
+        PRINTF_E("[%s - %d] getVersion fail",__func__,__LINE__);
 		return fail;
 	}
 
@@ -447,7 +501,16 @@ static int getVersion(char *hardwareAddr,int *fp,ENVParameter * envParameter,cha
 	return success;
 }
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param hardwareAddr <#hardwareAddr description#>
+ *  @param fp           <#fp description#>
+ *  @param envParameter <#envParameter description#>
+ *  @param fileContent  <#fileContent description#>
+ *
+ *  @return <#return value description#>
+ */
 static int getPN(char *hardwareAddr,int *fp,ENVParameter * envParameter,char *fileContent)
 {
 	char * str,*head,*tail;
@@ -455,7 +518,7 @@ static int getPN(char *hardwareAddr,int *fp,ENVParameter * envParameter,char *fi
 
 	if(hardwareAddr==NULL || fp==NULL || envParameter==NULL || fileContent==NULL)
 	{
-		PRINTF_E("[%s-%d]getPN parameter NULL \n",__func__,__LINE__);
+		PRINTF_E("[%s-%d]getPN fail \n",__func__,__LINE__);
 		return fail;
 	}
 	head = strstr(fileContent,"PN");
@@ -499,7 +562,14 @@ static int getPN(char *hardwareAddr,int *fp,ENVParameter * envParameter,char *fi
 	PRINTF_N("[%s--%d] checkPN:envParameter->PN = %s.\n",__func__,__LINE__,envParameter->PN);
 	return success;
 }
-
+/**
+ *  <#Description#>
+ *
+ *  @param hardwareAddr <#hardwareAddr description#>
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 static int openHardware(char *hardwareAddr ,ENVParameter * envParameter)
 {
     int fp;
@@ -534,7 +604,16 @@ static int openHardware(char *hardwareAddr ,ENVParameter * envParameter)
 }
 
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param macAddr      <#macAddr description#>
+ *  @param fp           <#fp description#>
+ *  @param envParameter <#envParameter description#>
+ *  @param fileContent  <#fileContent description#>
+ *
+ *  @return <#return value description#>
+ */
 static int getMacAddr(char *macAddr,int *fp,ENVParameter * envParameter,char *fileContent)
 {	
 	char * str,*head,*tail;
@@ -593,7 +672,14 @@ static int getMacAddr(char *macAddr,int *fp,ENVParameter * envParameter,char *fi
 	}
 	return success;
 }
-
+/**
+ *  <#Description#>
+ *
+ *  @param macAddr      <#macAddr description#>
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 static int openMac(char *macAddr,ENVParameter * envParameter)
 {
     int fp;
@@ -616,13 +702,19 @@ static int openMac(char *macAddr,ENVParameter * envParameter)
 		return	fail;		
 	}	
 
-
-	
     close(fp);
 	//PRINTF_N("%s",fileContent);
 	return success;
 }
-
+/**
+ *  <#Description#>
+ *
+ *  @param envParameter <#envParameter description#>
+ *  @param AddrHardware <#AddrHardware description#>
+ *  @param AddrMac      <#AddrMac description#>
+ *
+ *  @return <#return value description#>
+ */
 int openGetPnMacVersion(ENVParameter * envParameter,char * AddrHardware, char * AddrMac)
 {
 
@@ -644,6 +736,13 @@ int openGetPnMacVersion(ENVParameter * envParameter,char * AddrHardware, char * 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ *  <#Description#>
+ *
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 static int updateMacAddress(ENVParameter * envParameter )
 {
 		unsigned int mac[6];
@@ -703,7 +802,13 @@ static int updateMacAddress(ENVParameter * envParameter )
 		return success;
 }
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 static int setEnvEth(ENVParameter * envParameter)
 {
 
@@ -724,7 +829,13 @@ static int setEnvEth(ENVParameter * envParameter)
 	return success;
 }
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 int setEnvParameter(ENVParameter * envParameter)
 {
 	PRINTF_N("[%s - %d] \n",__func__,__LINE__);
@@ -777,6 +888,15 @@ int setEnvParameter(ENVParameter * envParameter)
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ *  <#Description#>
+ *
+ *  @param AddrMac      <#AddrMac description#>
+ *  @param fp           <#fp description#>
+ *  @param envParameter <#envParameter description#>
+ *
+ *  @return <#return value description#>
+ */
 static  int  writeMacAddr(char *AddrMac,int *fp,ENVParameter * envParameter)
 {
 	char MACaddress[50];
@@ -790,7 +910,14 @@ static  int  writeMacAddr(char *AddrMac,int *fp,ENVParameter * envParameter)
 	write(*fp,MACaddress,strlen(MACaddress));
 	return success;	
 }
-
+/**
+ *  <#Description#>
+ *
+ *  @param envParameter <#envParameter description#>
+ *  @param AddrMac      <#AddrMac description#>
+ *
+ *  @return <#return value description#>
+ */
 int updateMac(ENVParameter * envParameter, char * AddrMac)
 {
 	
@@ -815,7 +942,14 @@ int updateMac(ENVParameter * envParameter, char * AddrMac)
 }
 
 
-
+/**
+ *  <#Description#>
+ *
+ *  @param argc <#argc description#>
+ *  @param argv <#argv description#>
+ *
+ *  @return <#return value description#>
+ */
 int main(int argc, char *argv[])
 {
 	ENVParameter EnvParameter;
